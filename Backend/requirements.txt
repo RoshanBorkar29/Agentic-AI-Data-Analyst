@@ -1,0 +1,22 @@
+# API
+fastapi
+uvicorn[standard]
+python-multipart
+
+# AI / Agent
+langchain
+langchain-openai
+langgraph
+
+# Observability
+langsmith
+
+# Data
+pandas
+duckdb
+
+# Configuration
+python-dotenv
+
+# Validation
+pydantic
