@@ -1,0 +1,69 @@
+# =========================
+# Python
+# =========================
+
+# Virtual environment
+Backend/.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# =========================
+# Environment Variables
+# =========================
+
+.env
+Backend/.env
+
+# =========================
+# DuckDB / Local Databases
+# =========================
+
+*.duckdb
+*.duckdb.wal
+*.db
+
+# =========================
+# Data
+# =========================
+
+# Ignore local/generated datasets
+Backend/data/*.db
+Backend/data/*.duckdb
+
+# =========================
+# Node / React
+# =========================
+
+Frontend/node_modules/
+Frontend/dist/
+Frontend/build/
+
+# =========================
+# Logs
+# =========================
+
+*.log
+
+# =========================
+# IDE
+# =========================
+
+.vscode/
+.idea/
+
+# =========================
+# OS
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# =========================
+# Temporary files
+# =========================
+
+*.tmp
+*.temp
