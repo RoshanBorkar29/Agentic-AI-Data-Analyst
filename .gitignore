@@ -32,6 +32,7 @@ Backend/.env
 # Ignore local/generated datasets
 Backend/data/*.db
 Backend/data/*.duckdb
+Backend/uploads
 
 # =========================
 # Node / React

@@ -1,5 +1,6 @@
 from langchain_core.tools import tool
 from app.services.database import execute_query
+from langsmith import traceable
 
 @tool
 def run_sql(query:str)->str:
