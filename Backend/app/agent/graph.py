@@ -26,6 +26,11 @@ json_llm = ChatGroq(
     model_kwargs={"response_format": {"type": "json_object"}},
 )
 
+class QuestionCheck(BaseModel):
+    valid:bool
+
+
+question_llm = llm.with_structured_output(QuestionCheck)
 
 class ChartSpec(BaseModel):
     type: Literal["line", "bar", "pie", "histogram", "scatter", "none"]
@@ -45,6 +50,7 @@ class FinalResult(BaseModel):
 
 class AgentState(TypedDict):
     question: str
+    question_valid: bool
     schema: str
     data_quality: str
     sql_query: str
@@ -73,6 +79,21 @@ def clean_sql(sql: str) -> str:
         sql = sql[:-3]
     return sql.strip()
 
+def validate_question_node(state:AgentState):
+    prompt=f"""
+Determine whether the user's question can be answered using the uploaded dataset.
+Question:
+{state["question"]}
+
+Return valid=true if the question asks about the dataset,its columns,values,statistics,
+trends,comparisons,relationships
+Return valid=false for general question unrealted to the dataset.
+Return only the strucutured result.
+"""
+    result=question_llm.invoke(prompt)
+    return{
+        "question_valid":result.valid
+    }
 
 def inspect_node(state: AgentState):
     return {
@@ -190,8 +211,37 @@ Return only valid JSON with exactly this structure:
   }}
 }}
 
-Allowed chart types: line, bar, pie, histogram, scatter, none. Use only SQL-result values for the chart and use none when a chart is not useful. Do not invent facts, values, causes, or columns."""
-    result = FinalResult.model_validate_json(json_llm.invoke(prompt).content)
+Allowed chart types: line, bar, pie, histogram, scatter, none. Use only SQL-result values for the chart and use none when a chart is not useful. Do not invent facts, values, causes, or columns.
+Chart rules:
+
+- Use "bar" for comparing categories.
+- Use "line" for values changing over time.
+- Use "pie" only for part-to-whole proportions,percentage share.
+- Use "scatter" only when comparing two numeric variables.
+- Use "histogram" only for the distribution of one numeric variable.
+- Use "none" when the question is not suitable for visualization.
+- Never choose a chart type that cannot be created from the SQL result.
+"""
+
+    try:
+        response = json_llm.invoke(prompt)
+        result = FinalResult.model_validate_json(response.content)
+    except Exception:
+        return {
+            "summary": "Unable to format the analysis response.",
+            "findings": [],
+            "evidence": [],
+            "recommendations": [],
+            "chart": {
+                "type": "none",
+                "title": "",
+                "x_axis": None,
+                "y_axis": None,
+                "data": [],
+            },
+            "error": "FINAL_ANALYSIS_ERROR",
+        }
+
     return {
         "summary": result.summary,
         "findings": result.findings,
@@ -202,6 +252,38 @@ Allowed chart types: line, bar, pie, histogram, scatter, none. Use only SQL-resu
 
 
 def answer_node(state: AgentState):
+    if not state["question_valid"]:
+        return {
+            "summary": "This question is not related to the uploaded dataset.",
+            "findings": [],
+            "evidence": [],
+            "recommendations": [],
+            "chart": {},
+            "final_answer": (
+                "I can only answer questions related to the uploaded dataset. "
+                "Please ask a question about the data."
+            )
+        }
+
+    if state["error"] == "FINAL_ANALYSIS_ERROR":
+        return {
+            "summary": "Unable to complete the analysis.",
+            "findings": [],
+            "evidence": [],
+            "recommendations": [],
+            "chart": {
+                "type": "none",
+                "title": "",
+                "x_axis": None,
+                "y_axis": None,
+                "data": [],
+            },
+            "final_answer": (
+                "The data was analyzed, but the final response could not be formatted. "
+                "Please try the question again."
+            ),
+        }
+    
     final_answer = f"""SUMMARY:
 {state["summary"]}
 
@@ -214,6 +296,7 @@ EVIDENCE:
 RECOMMENDATIONS:
 {chr(10).join("- " + item for item in state["recommendations"])}"""
     return {"final_answer": final_answer}
+
 
 
 def failure_node(state: AgentState):
@@ -241,8 +324,15 @@ def route_after_analysis(state: AgentState):
         return "continue"
     return "final_analysis"
 
+def route_after_validation(state: AgentState):
+
+    if state["question_valid"]:
+        return "continue"
+
+    return "answer"
 
 builder = StateGraph(AgentState)
+builder.add_node("validate_question",validate_question_node)
 builder.add_node("inspect", inspect_node)
 builder.add_node("plan", planning_node)
 builder.add_node("generate_sql", sql_generation_node)
@@ -253,7 +343,14 @@ builder.add_node("final_analysis", final_analysis_node)
 builder.add_node("answer", answer_node)
 builder.add_node("failure", failure_node)
 builder.add_edge(START, "inspect")
-builder.add_edge("inspect", "plan")
+builder.add_edge("inspect", "validate_question")
+builder.add_conditional_edges(
+    "validate_question",
+    route_after_validation,{
+        "continue":"plan",
+        "answer":"answer"
+    }
+)
 builder.add_edge("plan", "generate_sql")
 builder.add_edge("generate_sql", "execute_sql")
 builder.add_conditional_edges(

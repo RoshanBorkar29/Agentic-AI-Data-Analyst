@@ -1,82 +1,7 @@
 import { useState } from "react";
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer
-} from "recharts";
 import "./App.css";
-function ChartRenderer({chart}){
-  if(!chart||chart.type==="none"){
-    return(
-      <div className="chart-empty">
-        NO visualization avaliable.
-      </div>
-    );
-  }
-  const data=chart.data||[];
-  if(!data.length){
-    return(
-      <div className="chart-empty">
-        No chart data available.
-      </div>
-    );
-  }
-  if (chart.type === "bar") {
+import Graph from "./Graph";
 
-    return (
-      <ResponsiveContainer width="100%" height={320}>
-        <BarChart data={data}
-        margin={{top:10,right:20,left:20,bottom:10}}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={chart.x_axis} 
-          tick={{ fill: "#94a3b8" }}
-          />
-          <YAxis width={80}
-          tick={{ fill: "#94a3b8" }}/>
-          <Tooltip />
-          <Bar dataKey={chart.y_axis} 
-           fill="#38bdf8"
-          />
-        </BarChart>
-      </ResponsiveContainer>
-    );
-  }
-
-  if (chart.type === "line") {
-
-    return (
-      <ResponsiveContainer width="100%" height={320}>
-        <LineChart data={data}
-         margin={{top:10,right:20,left:20,bottom:10}}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={chart.x_axis} />
-          <YAxis />
-          <Tooltip />
-          <Line
-            type="monotone"
-            dataKey={chart.y_axis}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    );
-  }
-
-  return (
-    <div className="chart-empty">
-      Chart type not supported yet.
-    </div>
-  );
-}
 function App() {
   const [question, setQuestion] = useState("");
   const [result, setResult] = useState(null);
@@ -600,7 +525,7 @@ finally{
     </h3>
   </div>
 
-  <ChartRenderer chart={result.chart} />
+  <Graph chart={result.chart} />
 
 </article>
 
