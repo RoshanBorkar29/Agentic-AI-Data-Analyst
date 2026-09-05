@@ -2,6 +2,8 @@ import { useState } from "react";
 import "./App.css";
 import Graph from "./Graph";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function App() {
   const [question, setQuestion] = useState("");
   const [result, setResult] = useState(null);
@@ -21,7 +23,7 @@ function App() {
     setResult(null);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/analyze", {
+      const response = await fetch(`${API_URL}/analyze`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -63,7 +65,7 @@ const handleFileUpload=async(event)=>{
     const formData=new FormData();
     formData.append("file",file);
     const response=await fetch(
-      "http://127.0.0.1:8000/upload",
+      `${API_URL}/upload`,
       {
         method:"POST",
         body:formData,

@@ -6,6 +6,7 @@ python-multipart
 # AI / Agent
 langchain
 langchain-openai
+langchain-groq
 langgraph
 
 # Observability
