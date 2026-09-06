@@ -52,9 +52,11 @@ const handleFileUpload=async(event)=>{
   if(!file)return;
   if(!file.name.toLowerCase().endsWith(".csv")){
     setError("ONly csv files are allowed for now!!");
+    return;
   }
   if(file.size>50*1024*1024){
     setError("File size must be less than 50 MB");
+    return;
   }
   setUploading(true);
   setError("");
