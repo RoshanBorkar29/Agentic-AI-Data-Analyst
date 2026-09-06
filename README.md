@@ -269,7 +269,9 @@ Storage/services: - PostgreSQL: users, datasets, history, permissions,
 job state. - Object Storage: persistent CSV/Parquet files. - Redis:
 caching, sessions, rate limits, reusable results. - Multiple API/worker
 instances: horizontal scaling. - Monitoring/logging/alerting: operations
-and reliability. ## Six Major Production Improvements 
+and reliability. 
+## Six Major Production Improvements 
+
 ### 1. Multi-user Dataset Isolation - Replace global active dataset with
 user/session-aware dataset_id. - Prevent cross-user dataset access.
 
