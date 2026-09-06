@@ -1,4 +1,4 @@
-Agentic AI Data Analyst --- Compact Project Context
+## Agentic AI Data Analyst --- Compact Project Context
 
 Project
 
@@ -11,8 +11,8 @@ interactive charts.
 
 Generic dataset support; not limited to sales data.
 
-Portfolio/demo deployment, not yet a large multi-user SaaS. ##
-Stack
+Portfolio/demo deployment, not yet a large multi-user SaaS.
+ ## Stack
 
 Frontend: React + Vite + Recharts.
 
@@ -35,13 +35,15 @@ Frontend: https://agentic-ai-data-analyst.vercel.app/
 Backend: https://agentic-ai-data-analyst.onrender.com
 
 Health: https://agentic-ai-data-analyst.onrender.com/health
+
  ## Current Architecture-
 ![alt text](image.png)
 
 
 
 
-React renders the answer and chart. ## LangGraph Workflow
+React renders the answer and chart. 
+## LangGraph Workflow
 
 Question
   ↓
