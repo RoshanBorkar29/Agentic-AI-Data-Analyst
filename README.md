@@ -1,6 +1,4 @@
-## Agentic AI Data Analyst --- Compact Project Context
-
-Project
+## Agentic AI Data Analyst ---
 
 AI-powered CSV analysis application.
 
@@ -12,6 +10,7 @@ interactive charts.
 Generic dataset support; not limited to sales data.
 
 Portfolio/demo deployment, not yet a large multi-user SaaS.
+
  ## Stack
 
 Frontend: React + Vite + Recharts.
@@ -28,7 +27,9 @@ Observability: LangSmith.
 
 Frontend hosting: Vercel.
 
-Backend hosting: Render. ## Live Deployment
+Backend hosting: Render.
+
+ ## Deployment
 
 Frontend: https://agentic-ai-data-analyst.vercel.app/
 
@@ -111,7 +112,9 @@ Provides LLM inference.
 Used for reasoning, SQL generation, result interpretation,
 recommendations, and chart selection.
 
-It is not the computation engine. ## Schema-Driven Design
+It is not the computation engine. 
+
+## Schema-Driven Design
 
 No hardcoded sales-only schema.
 
@@ -120,6 +123,7 @@ Uploaded dataset schema becomes part of agent context.
 SQL is generated from actual columns.
 
 Same workflow can handle different CSV structures. 
+
 ## SQL
 Reliability Problem Problem: - LLM may generate invalid SQL or
 incorrect column names. Solution: - Provide real schema. - Execute
@@ -177,7 +181,9 @@ const data = chart?.data || [];
 const xKey = chart?.x_axis;
 const yKey = chart?.y_axis;
 
-Lesson: - Backend/frontend need a clear structured contract. ## CORS
+Lesson: - Backend/frontend need a clear structured contract.
+
+ ## CORS
 Local: - React: localhost:5173 - FastAPI: 127.0.0.1:8000
 Production: - React: Vercel - FastAPI: Render Because origins differ,
 FastAPI CORS is configured for:
@@ -216,7 +222,9 @@ LANGSMITH_PROJECT=AI-Data-Analyst
 
 Secrets stay on Render/backend.
 
-Frontend only needs the public backend URL. ## Deployment
+Frontend only needs the public backend URL.
+
+ ## Deployment
 Frontend: - Vercel. - Root: frontend/Frontend. - Install:
 npm install. - Build: npm run build. - Output: dist.
 Backend: - Render Python service. - Root: backend. - Build:
@@ -224,49 +232,10 @@ pip install -r requirements.txt. - Start:
 
 uvicorn main:app --host 0.0.0.0 --port $PORT
 
-Health check: /health.
 
-Docker is not currently required. ## API Endpoints ### Health
 
-GET /health
 
-Returns:
-
-{"status":"ok"}
-
-Upload
-
-POST /upload
-
-Multipart CSV upload.
-
-CSV required.
-
-50 MB maximum. ### Analyze
-
-POST /analyze
-
-Request:
-
-{"question":"Show the average amount by category"}
-
-Response includes: - summary - findings - evidence -
-recommendations - chart - final_answer 
-
-## Current Production
-Error Being Investigated Production previously showed:
-Unexpected token 'T', "The page c..." is not valid JSON Meaning: -
-Frontend expected JSON. - /analyze returned non-JSON text/HTML. -
-Original code used response.json() directly. Debugging approach:
-
-const text = await response.text();
-
-Then inspect/parse the response to identify whether it is a 404, 500,
-HTML page, or another server response. Do not mark this as solved until
-confirmed. 
-
-## LangSmith Used for: -
- workflow tracing - node latency -
+## LangSmith Used for: -workflow tracing - node latency -
 LLM calls - prompts/responses - token usage - SQL errors - retries -
 failures It helped identify latency and token-usage bottlenecks. 
 
@@ -300,8 +269,8 @@ Storage/services: - PostgreSQL: users, datasets, history, permissions,
 job state. - Object Storage: persistent CSV/Parquet files. - Redis:
 caching, sessions, rate limits, reusable results. - Multiple API/worker
 instances: horizontal scaling. - Monitoring/logging/alerting: operations
-and reliability. ## Six Major Production Improvements ### 1.
-Multi-user Dataset Isolation - Replace global active dataset with
+and reliability. ## Six Major Production Improvements 
+### 1. Multi-user Dataset Isolation - Replace global active dataset with
 user/session-aware dataset_id. - Prevent cross-user dataset access.
 
 ### 2. Object Storage - Store uploads in S3-compatible/cloud object
