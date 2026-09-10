@@ -24,8 +24,8 @@ Portfolio/demo deployment, not yet a large multi-user SaaS.
 ## Deployment
 
 - Frontend: https://agentic-ai-data-analyst.vercel.app/
-- Backend: https://agentic-ai-data-analyst.onrender.com
-- Health: https://agentic-ai-data-analyst.onrender.com/health
+- Backend: https://agentic-ai-data-analyst.onrender.com   ( Backend is Suspended as i am using free tier so when you will try to run then it will not run proplery)
+
 
 ## Current Architecture
 
