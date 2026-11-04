@@ -9,7 +9,7 @@ The application goes beyond simple prompt-wrapping: it plans investigations, det
 ## Live Deployments
 
 - **Frontend App:** [https://agentic-ai-data-analyst.vercel.app/](https://agentic-ai-data-analyst.vercel.app/)
-- **Backend API:** [https://agentic-ai-data-analyst.onrender.com](https://agentic-ai-data-analyst.onrender.com)
+- **Backend API:** [https://agentic-ai-data-analyst.onrender.com](https://agentic-ai-data-analyst.onrender.com) *(Note: Render free-tier instances may sleep after inactivity; please allow ~50 seconds for cold starts, or use the Docker/local setup below for immediate testing).*
 - **API Health Check:** [https://agentic-ai-data-analyst.onrender.com/health](https://agentic-ai-data-analyst.onrender.com/health)
 
 ---
