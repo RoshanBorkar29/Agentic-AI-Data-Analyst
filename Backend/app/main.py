@@ -4,9 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from langchain_core.runnables import RunnableConfig
 from pathlib import Path
 import shutil
+import uuid
 
 from app.agent.graph import graph
-from app.services.database import get_connection, set_active_dataset
+from app.services.database import get_connection, set_active_dataset, get_anomaly_report
+from app.services.session_store import session_manager
 
 
 UPLOAD_DIR = Path("uploads")
@@ -18,7 +20,7 @@ app = FastAPI(title="AI Data Analyst")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173","https://agentic-ai-data-analyst.vercel.app"],
+    allow_origins=["http://localhost:5173", "https://agentic-ai-data-analyst.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,6 +29,7 @@ app.add_middleware(
 
 class AnalyzeRequest(BaseModel):
     question: str
+    session_id: str | None = None
 
 
 @app.get("/health")
@@ -36,14 +39,48 @@ def health():
     }
 
 
+@app.get("/anomalies")
+def get_anomalies():
+    try:
+        report = get_anomaly_report()
+        return report
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to scan anomalies: {str(e)}"
+        )
+
+
+@app.post("/session/clear")
+def clear_session(request: dict = None):
+    sid = (request or {}).get("session_id")
+    if sid:
+        session_manager.clear_session(sid)
+    return {"status": "cleared", "session_id": sid}
+
+
+@app.get("/session/{session_id}/history")
+def get_session_history(session_id: str):
+    history = session_manager.get_history(session_id)
+    return {"session_id": session_id, "history": history}
+
+
 @app.post("/analyze")
 def analyze(request: AnalyzeRequest):
 
+    session_id = request.session_id or str(uuid.uuid4())
+    conversation_history = session_manager.format_history_for_prompt(session_id)
+
     initial_state = {
         "question": request.question,
+        "session_id": session_id,
+        "conversation_history": conversation_history,
         "schema": "",
         "data_quality": "",
         "sql_query": "",
+        "pandas_code": "",
+        "anomalies": [],
+        "reasoning": "",
         "query_result": "",
         "error": "",
         "sql_attempts": 0,
@@ -62,7 +99,8 @@ def analyze(request: AnalyzeRequest):
         run_name="Data Analysis",
         tags=["data-analyst", "development"],
         metadata={
-            "app": "AI Data Analyst"
+            "app": "AI Data Analyst",
+            "session_id": session_id
         }
     )
 
@@ -71,13 +109,29 @@ def analyze(request: AnalyzeRequest):
         config=config
     )
 
+    # Record completed turn in session memory
+    session_manager.add_turn(
+        session_id=session_id,
+        question=request.question,
+        summary=result.get("summary", ""),
+        sql_query=result.get("sql_query", ""),
+        findings=result.get("findings", []),
+        evidence=result.get("evidence", [])
+    )
+
     return {
-        "summary": result["summary"],
-        "findings": result["findings"],
-        "evidence": result["evidence"],
-        "recommendations": result["recommendations"],
-        "chart": result["chart"],
-        "final_answer": result["final_answer"]
+        "session_id": session_id,
+        "summary": result.get("summary", ""),
+        "findings": result.get("findings", []),
+        "evidence": result.get("evidence", []),
+        "recommendations": result.get("recommendations", []),
+        "chart": result.get("chart", {}),
+        "final_answer": result.get("final_answer", ""),
+        "sql_query": result.get("sql_query", ""),
+        "pandas_code": result.get("pandas_code", ""),
+        "anomalies": result.get("anomalies", []),
+        "reasoning": result.get("reasoning", ""),
+        "investigation_plan": result.get("investigation_plan", "")
     }
 
 

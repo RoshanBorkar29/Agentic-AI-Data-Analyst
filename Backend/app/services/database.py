@@ -95,6 +95,84 @@ def get_quality_report():
 
 
 # ============================================================
+# ANOMALY DETECTION REPORT
+# ============================================================
+
+def get_anomaly_report():
+    conn = get_connection()
+    columns = conn.execute("DESCRIBE dataset").fetchall()
+    total_rows = conn.execute("SELECT COUNT(*) FROM dataset").fetchone()[0]
+
+    numeric_types = ["INTEGER", "BIGINT", "DOUBLE", "FLOAT", "DECIMAL", "NUMERIC", "HUGEINT"]
+    numeric_columns = [
+        col[0] for col in columns
+        if any(nt in col[1].upper() for nt in numeric_types)
+    ]
+
+    anomaly_report = []
+
+    for col in numeric_columns:
+        try:
+            stats = conn.execute(f'''
+                SELECT
+                    AVG("{col}") AS mean_val,
+                    STDDEV("{col}") AS std_val,
+                    MIN("{col}") AS min_val,
+                    MAX("{col}") AS max_val,
+                    QUANTILE_CONT("{col}", 0.25) AS q1,
+                    QUANTILE_CONT("{col}", 0.75) AS q3
+                FROM dataset
+                WHERE "{col}" IS NOT NULL
+            ''').fetchone()
+
+            if not stats or stats[0] is None:
+                continue
+
+            mean_val, std_val, min_val, max_val, q1, q3 = stats
+            std_val = std_val or 0.0
+            z_thresh = 2.5 * std_val
+            lower_z = mean_val - z_thresh
+            upper_z = mean_val + z_thresh
+
+            outliers_count = conn.execute(f'''
+                SELECT COUNT(*)
+                FROM dataset
+                WHERE "{col}" > {upper_z} OR "{col}" < {lower_z}
+            ''').fetchone()[0]
+
+            if outliers_count > 0:
+                sample_rows = conn.execute(f'''
+                    SELECT "{col}"
+                    FROM dataset
+                    WHERE "{col}" > {upper_z} OR "{col}" < {lower_z}
+                    ORDER BY ABS("{col}" - {mean_val}) DESC
+                    LIMIT 3
+                ''').fetchall()
+
+                sample_vals = [round(float(r[0]), 2) for r in sample_rows]
+
+                anomaly_report.append({
+                    "column": col,
+                    "mean": round(float(mean_val), 2),
+                    "stddev": round(float(std_val), 2),
+                    "min": round(float(min_val), 2),
+                    "max": round(float(max_val), 2),
+                    "expected_normal_range": f"{round(lower_z, 2)} to {round(upper_z, 2)}",
+                    "outlier_count": outliers_count,
+                    "sample_outliers": sample_vals,
+                })
+        except Exception:
+            continue
+
+    conn.close()
+    return {
+        "total_rows": total_rows,
+        "anomalies_detected": len(anomaly_report) > 0,
+        "metrics": anomaly_report
+    }
+
+
+# ============================================================
 # CLEAN NUMERIC NULLS
 # ============================================================
 
