@@ -1,5 +1,6 @@
 from typing import Literal, TypedDict
 import os
+import re
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -92,26 +93,29 @@ class AgentState(TypedDict):
 
 
 def clean_sql(sql: str) -> str:
+    if not sql:
+        return ""
     sql = sql.strip()
-    if sql.startswith("```sql"):
-        sql = sql[6:]
-    elif sql.startswith("```"):
-        sql = sql[3:]
-    if sql.endswith("```"):
-        sql = sql[:-3]
-    return sql.strip()
+    # 1. Extract markdown fenced code block if present
+    match = re.search(r"```(?:sql)?\s*(.*?)\s*```", sql, re.DOTALL | re.IGNORECASE)
+    if match:
+        sql = match.group(1).strip()
+    # 2. Strip any conversational introductory chatter before SELECT or WITH
+    query_start = re.search(r"\b(SELECT|WITH)\b", sql, re.IGNORECASE)
+    if query_start:
+        sql = sql[query_start.start():].strip()
+    # 3. Strip any trailing markdown closing or commentary
+    sql = re.sub(r"```.*$", "", sql, flags=re.DOTALL).strip()
+    return sql
 
 
 def clean_code(code: str) -> str:
     if not code:
         return ""
     code = code.strip()
-    if code.startswith("```python"):
-        code = code[9:]
-    elif code.startswith("```"):
-        code = code[3:]
-    if code.endswith("```"):
-        code = code[:-3]
+    match = re.search(r"```(?:python)?\s*(.*?)\s*```", code, re.DOTALL | re.IGNORECASE)
+    if match:
+        code = match.group(1).strip()
     return code.strip()
 
 def validate_question_node(state:AgentState):
@@ -200,7 +204,8 @@ Rules:
 - For dataset overview or exploratory questions ('what is the dataset about', 'summary', 'describe data'), write an aggregated summary query (e.g., SELECT COUNT(*) as total_records FROM dataset) or sample preview (SELECT * FROM dataset LIMIT 5). NEVER return thousands of unaggregated rows.
 - When the question is a follow-up or asks to 'Generate SQL for this analysis', reference the metrics, entities, and filters established in the conversation context.
 - When detecting anomalies or outliers: use statistical calculations in DuckDB such as mean and stddev (Z-score) or IQR (QUANTILE_CONT 0.25 and 0.75), filter rows where ABS(column - mean) > 2.5 * stddev or outside 1.5*IQR, select identifying attributes (e.g. date, category, name, region, value), and order by magnitude of deviation descending.
-- Return only SQL."""
+- Avoid reserved DuckDB keywords (e.g., PIVOT, ORDER, GROUP, TABLE, USER) as unquoted CTE or alias names; use names like sales_summary, cat_pivot, or quote them.
+- Return ONLY the executable SQL query. Never include introductory text, explanations, or conversational filler."""
     return {"sql_query": clean_sql(llm.invoke(prompt).content), "sql_attempts": 0}
 
 
@@ -224,7 +229,8 @@ SQL:
 Error:
 {state["error"]}
 
-Use only `dataset` and schema columns. Return one read-only SELECT query only."""
+Use only `dataset` and schema columns. Return one read-only SELECT query only.
+CRITICAL: Output ONLY the SQL query. Do not provide any conversational explanations, introductions, markdown commentary, or apologies."""
     return {"sql_query": clean_sql(llm.invoke(prompt).content)}
 
 
