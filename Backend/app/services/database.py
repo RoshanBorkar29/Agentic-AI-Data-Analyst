@@ -15,6 +15,11 @@ def set_active_dataset(file_path):
     ACTIVE_CSV_PATH=Path(file_path)
 
 
+def get_active_dataset_name() -> str:
+    global ACTIVE_CSV_PATH
+    return ACTIVE_CSV_PATH.name if ACTIVE_CSV_PATH else "sales.csv"
+
+
 def get_connection():
 
     if ACTIVE_CSV_PATH is None:

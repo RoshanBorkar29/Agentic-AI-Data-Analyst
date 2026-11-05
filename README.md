@@ -135,6 +135,17 @@ Large Language Models are probabilistic and prone to arithmetic hallucinations w
   - Chart Selection Accuracy
   - Numerical Faithfulness / Hallucination Detection
 
+### 11. In-Memory Query Caching (Bonus Feature)
+- High-performance analytical query cache with SHA-256 key normalization.
+- Serves identical or repeated questions in `<5ms` with zero LLM token cost.
+- Exposes cache telemetry endpoints (`GET /cache/stats`, `POST /cache/clear`) and visual `⚡ Cached (<5ms)` badges in the UI.
+- Auto-invalidates on new CSV upload to prevent stale data.
+
+### 12. Structured Application Logging & Observability (Bonus Feature)
+- Dedicated `logger_service` providing unified console and rotating file logging (`logs/analyst.log`, 5MB max, 3 backups).
+- Tracks upload lifecycle, SQL execution duration, agent state transitions, cache hit/miss events, and error stack traces.
+- Exposes `GET /logs` for real-time remote observability alongside LangSmith tracing.
+
 ---
 
 ## Tech Stack

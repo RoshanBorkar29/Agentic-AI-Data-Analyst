@@ -435,9 +435,16 @@ finally{
               </div>
 
               {result && (
-                <span className="complete">
-                  Analysis complete
-                </span>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  {result.cached && (
+                    <span className="cached-badge" title={`Cached response served in ${result.latency_ms || '<5'}ms`}>
+                      ⚡ Cached ({result.latency_ms ? `${result.latency_ms}ms` : '<5ms'})
+                    </span>
+                  )}
+                  <span className="complete">
+                    Analysis complete
+                  </span>
+                </div>
               )}
 
             </div>
