@@ -17,7 +17,7 @@ if ENV_PATH.exists():
     load_dotenv(ENV_PATH)
 load_dotenv()
 
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
 llm = ChatGroq(
     api_key=os.getenv("GROQ_API_KEY"),
