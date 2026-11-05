@@ -18,35 +18,98 @@ The application goes beyond simple prompt-wrapping: it plans investigations, det
 
 ![alt text](image.png)
 
-### LangGraph Agent State Machine
+### Interactive System Architecture
 
-```text
-User Question + Session Context
-              ↓
-    [ Inspect Dataset Schema ]
-              ↓
-  [ Validate Question Guardrail ]
-        ├─ Invalid → [ Out-of-Scope Answer Node ] → END
-        └─ Valid
-              ↓
-  [ Plan Analytical Investigation ]
-              ↓
-    [ Generate DuckDB SQL ]
-              ↓
-    [ Execute SQL via DuckDB ]
-        ├─ SQL Error? → [ Fix SQL Node ] ──(Retry Loop ≤ 2)──→ [ Execute SQL ]
-        └─ Success
-              ↓
-    [ Analyze Observations ]
-        ├─ Needs 2nd Query? ──(≤ 2 queries)──→ [ Generate SQL ]
-        └─ Complete
-              ↓
-    [ Final Analysis & ChartSpec ]
-              ↓
-[ Answer Synthesis (Findings + Evidence + Code + Anomalies) ]
-              ↓
-             END
+```mermaid
+flowchart TD
+    subgraph Client["Frontend Layer (React 18 + Vite)"]
+        UI["Dark Analytics UI Workspace"]
+        Upload["CSV Ingestion & Validation"]
+        Chat["Natural Language Input & Multi-turn Session Chips"]
+        Viewer["Code Viewer (DuckDB SQL / Python Pandas)"]
+        Charts["Dynamic Chart Renderer (Recharts)"]
+        AnomUI["Statistical Anomaly Cards & Severity Badges"]
+        ReasoningUI["AI Reasoning & Methodology Drawer"]
+    end
+
+    subgraph API["Backend API Layer (FastAPI)"]
+        Endpoints["REST API (/analyze, /upload, /anomalies, /cache, /logs)"]
+        Cache["In-Memory Query Cache (SHA-256 Hashing, TTL, LRU)"]
+        SessionStore["Session Manager (Multi-Turn Conversational Memory)"]
+        Logger["Structured Logging (Rotating File + Console)"]
+    end
+
+    subgraph Agent["LangGraph Cognitive State Machine"]
+        Inspect["Inspect Schema & Data Quality Node"]
+        Guard{"Validate Question & Guardrail Node"}
+        Plan["Investigation Planning Node"]
+        SQLGen["DuckDB SQL & Pandas Generation Node"]
+        ExecSQL["Execute SQL Node"]
+        SelfHeal{"SQL Error?"}
+        FixSQL["Fix SQL Self-Healing Node (Max 2 Attempts)"]
+        Obs["Analyze Observations Node"]
+        MultiHop{"Needs 2nd Query?"}
+        FinalSynthesis["Final Analysis & ChartSpec Synthesis Node"]
+        AnswerNode["Answer Synthesis Node"]
+    end
+
+    subgraph Storage["Deterministic Compute & Storage Layer"]
+        DuckDB[("DuckDB In-Memory OLAP Database")]
+        StatEngine["Deterministic Statistical Anomaly Engine (Z-Score & IQR)"]
+        CSVFiles[("Uploaded CSV Datasets")]
+    end
+
+    subgraph LLM["Inference & Observability"]
+        Groq["Groq Cloud API (LPU Inference Engine)"]
+        LangSmith["LangSmith Distributed Tracing Platform"]
+    end
+
+    %% Client Interactions
+    Upload -->|"Multipart POST /upload"| Endpoints
+    Chat -->|"POST /analyze (Question + Session ID)"| Endpoints
+    Endpoints --> SessionStore
+    Endpoints --> Cache
+    Cache -->|"Cache Hit (<5ms)"| UI
+    Cache -->|"Cache Miss"| Agent
+
+    %% Observability
+    Agent -.->|"Trace Runs & Token Telemetry"| LangSmith
+    Endpoints -.->|"Structured Request Logs"| Logger
+
+    %% Agent State Flow
+    Agent -->|"Prompt + Schema Context"| Groq
+    Groq -->|"Structured Plan / SQL / Reasoning"| Agent
+
+    Inspect --> Guard
+    Guard -->|"Invalid (Out of Scope)"| AnswerNode
+    Guard -->|"Valid"| Plan
+    Plan --> SQLGen
+    SQLGen --> ExecSQL
+    ExecSQL --> SelfHeal
+    SelfHeal -->|"Yes"| FixSQL
+    FixSQL --> ExecSQL
+    SelfHeal -->|"No"| Obs
+    Obs --> MultiHop
+    MultiHop -->|"Yes (<=2 hops)"| SQLGen
+    MultiHop -->|"No"| FinalSynthesis
+    FinalSynthesis --> AnswerNode
+
+    %% Compute Interactions
+    ExecSQL <-->|"Vectorized SELECT"| DuckDB
+    Inspect <-->|"DESCRIBE dataset"| DuckDB
+    StatEngine <-->|"AVG, STDDEV, QUANTILE_CONT"| DuckDB
+    DuckDB <-->|"read_csv_auto"| CSVFiles
+
+    %% Response Delivery
+    AnswerNode -->|"Response Payload"| Endpoints
+    Endpoints -->|"Summary & Evidence"| UI
+    Endpoints -->|"SQL & Pandas Code"| Viewer
+    Endpoints -->|"ChartSpec"| Charts
+    Endpoints -->|"Flagged Anomalies"| AnomUI
+    Endpoints -->|"Investigation Plan & Deduction"| ReasoningUI
 ```
+
+> 📖 **Full System Architecture & Deep Dive:** For complete data models, state machine schemas, caching specifications, and API docs, see the [Technical Documentation](TECHNICAL_DOCUMENTATION.md).
 
 ---
 
