@@ -1,5 +1,11 @@
 # Technical Documentation: Agentic AI Data Analyst (DataWise AI)
 
+> 🎥 **Demo Video:** [Watch Application Demo Video (Google Drive)](https://drive.google.com/file/d/1HrAXjvlWpNPCcpW4-4G47amQ6vb_so8_/view?usp=drive_link)  
+> 🌐 **Live Frontend:** [https://agentic-ai-data-analyst.vercel.app/](https://agentic-ai-data-analyst.vercel.app/)  
+> ⚙️ **Live Backend:** [https://agentic-ai-data-analyst.onrender.com](https://agentic-ai-data-analyst.onrender.com)
+
+---
+
 ## 1. Executive Summary & System Philosophy
 
 **DataWise AI** is a production-grade agentic data intelligence system engineered to eliminate the fundamental flaw of naive LLM data analysis: **numerical hallucination**. 

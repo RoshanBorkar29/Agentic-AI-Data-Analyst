@@ -6,11 +6,16 @@ The application goes beyond simple prompt-wrapping: it plans investigations, det
 
 ---
 
-## Live Deployments
+> 🎥 **Demo Video Walkthrough:** [Watch Demo Video (Google Drive)](https://drive.google.com/file/d/1HrAXjvlWpNPCcpW4-4G47amQ6vb_so8_/view?usp=drive_link)
 
-- **Frontend App:** [https://agentic-ai-data-analyst.vercel.app/](https://agentic-ai-data-analyst.vercel.app/)
-- **Backend API:** [https://agentic-ai-data-analyst.onrender.com](https://agentic-ai-data-analyst.onrender.com) *(Note: Render free-tier instances may sleep after inactivity; please allow ~50 seconds for cold starts, or use the Docker/local setup below for immediate testing).*
-- **API Health Check:** [https://agentic-ai-data-analyst.onrender.com/health](https://agentic-ai-data-analyst.onrender.com/health)
+---
+
+## Live Deployments & Demo Video
+
+- 📹 **Demo Video Link:** [https://drive.google.com/file/d/1HrAXjvlWpNPCcpW4-4G47amQ6vb_so8_/view?usp=drive_link](https://drive.google.com/file/d/1HrAXjvlWpNPCcpW4-4G47amQ6vb_so8_/view?usp=drive_link)
+- 🌐 **Frontend App:** [https://agentic-ai-data-analyst.vercel.app/](https://agentic-ai-data-analyst.vercel.app/)
+- ⚙️ **Backend API:** [https://agentic-ai-data-analyst.onrender.com](https://agentic-ai-data-analyst.onrender.com) *(Note: Render free-tier instances may sleep after inactivity; please allow ~50 seconds for cold starts, or use the Docker/local setup below for immediate testing).*
+- 🩺 **API Health Check:** [https://agentic-ai-data-analyst.onrender.com/health](https://agentic-ai-data-analyst.onrender.com/health)
 
 ---
 
