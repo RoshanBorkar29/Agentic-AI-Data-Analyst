@@ -55,3 +55,4 @@ def get_recent_logs(max_lines: int = 50) -> list[str]:
             return [line.strip() for line in lines[-max_lines:]]
     except Exception as e:
         return [f"Error reading log file: {str(e)}"]
+

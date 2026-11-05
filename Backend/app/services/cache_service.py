@@ -104,3 +104,4 @@ class QueryCache:
 
 # Global singleton instance
 query_cache = QueryCache()
+

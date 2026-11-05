@@ -17,15 +17,17 @@ if ENV_PATH.exists():
     load_dotenv(ENV_PATH)
 load_dotenv()
 
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+
 llm = ChatGroq(
     api_key=os.getenv("GROQ_API_KEY"),
-    model="openai/gpt-oss-120b",
+    model=GROQ_MODEL,
     temperature=0,
 )
 
 json_llm = ChatGroq(
     api_key=os.getenv("GROQ_API_KEY"),
-    model="openai/gpt-oss-120b",
+    model=GROQ_MODEL,
     temperature=0,
     model_kwargs={"response_format": {"type": "json_object"}},
 )
@@ -133,9 +135,28 @@ Return only the structured result.
 def inspect_node(state: AgentState):
     quality = get_quality_report()
     anomaly_summary = get_anomaly_report()
+
+    null_cols = [
+        f"{c['column']} ({c['null_percentage']}% null)"
+        for c in quality.get("columns", [])
+        if c.get("null_count", 0) > 0
+    ]
+    null_str = ", ".join(null_cols) if null_cols else "No nulls"
+
+    anom_list = [
+        f"{m['column']} ({m['outlier_count']} outliers)"
+        for m in anomaly_summary.get("metrics", [])
+    ]
+    anom_str = "; ".join(anom_list[:4]) if anom_list else "None"
+
+    compact_quality = (
+        f"Total rows: {quality.get('total_rows', 0)}, Duplicates: {quality.get('duplicate_rows', 0)}. "
+        f"Null columns: {null_str}. Anomaly scan: {anom_str}."
+    )
+
     return {
         "schema": inspect_dataset.invoke({}),
-        "data_quality": f"Quality Report: {quality}\nAnomaly Scan: {anomaly_summary}",
+        "data_quality": compact_quality,
     }
 
 
@@ -175,7 +196,8 @@ Data quality & Anomaly scan:
 {state["data_quality"]}
 
 Rules:
-- Use only `dataset` and schema columns; generate one read-only SELECT; prefer concise aggregations; never use SELECT *; limit output to rows needed for the question; handle NULLs when needed; use dataset dates, not CURRENT_DATE.
+- Use only `dataset` and schema columns; generate one read-only SELECT; prefer concise aggregations; never use unbounded SELECT *; limit output to rows needed for the question; handle NULLs when needed; use dataset dates, not CURRENT_DATE.
+- For dataset overview or exploratory questions ('what is the dataset about', 'summary', 'describe data'), write an aggregated summary query (e.g., SELECT COUNT(*) as total_records FROM dataset) or sample preview (SELECT * FROM dataset LIMIT 5). NEVER return thousands of unaggregated rows.
 - When the question is a follow-up or asks to 'Generate SQL for this analysis', reference the metrics, entities, and filters established in the conversation context.
 - When detecting anomalies or outliers: use statistical calculations in DuckDB such as mean and stddev (Z-score) or IQR (QUANTILE_CONT 0.25 and 0.75), filter rows where ABS(column - mean) > 2.5 * stddev or outside 1.5*IQR, select identifying attributes (e.g. date, category, name, region, value), and order by magnitude of deviation descending.
 - Return only SQL."""
