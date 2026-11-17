@@ -196,7 +196,7 @@ Large Language Models are probabilistic and prone to arithmetic hallucinations w
 - Errors, previous queries, and schemas are fed back to a `fix_sql` node, recovering automatically without crashing the user session.
 
 ### 10. Evaluation Framework
-- Automated test suite ([`Backend/app/evaluation/evaluator.py`](file:///Backend/app/evaluation/evaluator.py)) with 12 benchmark test cases evaluating:
+- Automated test suite ([`Backend/app/evaluation/evaluator.py`](file:///Backend/app/evaluation/evaluator.py)) with 70 benchmark test cases across 8 analytical categories evaluating:
   - Question Relevance / Guardrail accuracy
   - Pass@1 & Pass@2 (Self-Healing Recovery)
   - Semantic Ground-Truth SQL matching
@@ -257,7 +257,7 @@ Agentic-AI-Data-Analyst/
 │       │   ├── data_tool.py       # Dataset inspection tool
 │       │   └── sql_tool.py        # Read-only SQL execution tool
 │       └── evaluation/
-│           ├── test_cases.py      # 12 benchmark test cases
+│           ├── test_cases.py      # 70 benchmark test cases across 8 categories
 │           ├── evaluator.py       # Automated evaluation harness
 │           └── reports/           # Generated evaluation markdown reports
 └── frontend/
@@ -382,7 +382,7 @@ cd Backend
 python -m app.evaluation.evaluator
 ```
 
-The harness will execute all 12 test cases, perform semantic result comparisons against ground truth queries, verify chart selection, check numerical faithfulness, and write an executive scorecard to `app/evaluation/reports/evaluation_report.md`.
+The harness will execute the benchmark test suite (with optional --category or --limit flags), perform semantic result comparisons against ground truth queries, verify chart selection, check numerical faithfulness, and write an executive scorecard to `app/evaluation/reports/evaluation_report.md`.
 
 ---
 

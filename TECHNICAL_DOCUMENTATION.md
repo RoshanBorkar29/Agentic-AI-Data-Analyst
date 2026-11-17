@@ -426,7 +426,7 @@ interface ChartSpec {
 
 ## 11. Automated Evaluation Harness & Benchmark Suite
 
-The evaluation suite ([`Backend/app/evaluation/evaluator.py`](Backend/app/evaluation/evaluator.py)) executes 12 benchmark test cases against `sample_datasets/sales.csv`:
+The evaluation suite ([`Backend/app/evaluation/evaluator.py`](Backend/app/evaluation/evaluator.py)) executes 70 canonical benchmark test cases across 8 analytical categories against `sample_datasets/sales.csv`:
 
 ### Benchmark Evaluation Dimensions
 1. **Question Relevance / Guardrail Accuracy:** Validates that out-of-scope queries (e.g. *"What is the capital of France?"*) are rejected without running SQL.

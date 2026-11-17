@@ -461,6 +461,7 @@ def generate_markdown_report(summary: Dict[str, Any], results: List[Dict[str, An
 def main():
     parser = argparse.ArgumentParser(description="Evaluate Agentic AI Data Analyst system.")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of test cases to run")
+    parser.add_argument("--category", type=str, default=None, help="Filter by category (e.g. aggregation, ranking, time_series, out_of_scope)")
     parser.add_argument("--id", type=str, default=None, help="Run a specific test case by ID (e.g. TC_001)")
     parser.add_argument("--output-dir", type=str, default=str(CURRENT_DIR / "reports"), help="Output directory for reports")
     args = parser.parse_args()
@@ -469,6 +470,12 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
 
     suite = test_cases
+    if args.category:
+        suite = [tc for tc in suite if tc.get("category", "").lower() == args.category.lower()]
+        if not suite:
+            print(f"Error: No test cases found for category '{args.category}'.")
+            sys.exit(1)
+
     if args.id:
         suite = [tc for tc in suite if tc["id"].upper() == args.id.upper()]
         if not suite:
